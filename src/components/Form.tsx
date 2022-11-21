@@ -1,8 +1,10 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
 
+import validator from 'validator';
+
 interface FormData {
-    name: string;
+    fullName: string;
     email: string;
     password: string;
     passwordConfirmation: string;
@@ -11,31 +13,39 @@ interface FormData {
 }
 
 const Form = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        watch // to monitor password
+    } = useForm<FormData>();
 
-    console.log({ errors })
+    const watchPassword = watch("password");
 
-    // console.log('RENDER');
+    // console.log({ errors })
 
     const onSubmit = (data: FormData) => {
-        console.log(data)
+        // console.log(data);
+        alert(JSON.stringify(data))
     }
 
     return (
         <div className='app-container'>
 
             <div className='form-group'>
-                <label>Name</label>
+                <label>Full Name</label>
                 <input
-                    className={errors?.name && 'input-error'}
+                    className={errors?.fullName && 'input-error'}
                     type="text"
-                    placeholder='Your name'
-                    {...register('name',
-                        { required: true })}
+                    placeholder='Your Full Name'
+                    {...register('fullName',
+                        {
+                            required: true
+                        })}
                 />
-                {errors?.name?.type === 'required' && (
+                {errors?.fullName?.type === 'required' && (
                     <p className='error-message'>
-                        Name is required.
+                        Full Name is required.
                     </p>
                 )}
             </div>
@@ -46,12 +56,19 @@ const Form = () => {
                     className={errors?.email && 'input-error'}
                     type="email"
                     placeholder='Your email'
-                    {...register('email',
-                        { required: true })}
+                    {...register('email', {
+                        required: true,
+                        validate: (value) => validator.isEmail(value)
+                    })}
                 />
                 {errors?.email?.type === 'required' && (
                     <p className='error-message'>
                         Email is required.
+                    </p>
+                )}
+                {errors?.email?.type === 'validate' && (
+                    <p className='error-message'>
+                        Email is invalid.
                     </p>
                 )}
             </div>
@@ -78,15 +95,41 @@ const Form = () => {
             </div>
 
             <div className='form-group'>
+                <label>Confirm Password</label>
+                <input
+                    className={errors?.passwordConfirmation && 'input-error'}
+                    type="password"
+                    placeholder='Confirm Password'
+                    {...register("passwordConfirmation", {
+                        required: true,
+                        validate: (value) => value === watchPassword,
+                    })}
+                />
+
+                {errors?.passwordConfirmation?.type === "required" && (
+                    <p className="error-message">
+                        Password confirmation is required.
+                    </p>
+                )}
+
+                {errors?.passwordConfirmation?.type === "validate" && (
+                    <p className="error-message">
+                        Passwords does not match.
+                    </p>
+                )}
+            </div>
+
+            <div className='form-group'>
                 <label>Profession</label>
                 <select
+                    className={errors?.profession && 'input-error'}
+                    defaultValue='0'
                     {...register('profession',
                         {
                             validate: (value) => {
                                 return value !== '0';
                             }
                         })}
-                    className={errors?.profession && 'input-error'}
                 >
                     <option value='0'>Select your profession</option>
                     <option value='developer'>Developer</option>
@@ -103,16 +146,17 @@ const Form = () => {
                 <div className='checkbox-group'>
                     <input
                         type="checkbox"
-                        name='privacy-policy'
-                        {...register('privacyTerms',
-                            { required: true })}
+                        {...register("privacyTerms", {
+                            validate: (value) => value === true,
+                        })}
                     />
                     <label>
                         I agree with the privacy terms.
                     </label>
                 </div>
-                {errors?.privacyTerms?.type === 'required' && (
-                    <p className='error-message'>
+
+                {errors?.privacyTerms?.type === "validate" && (
+                    <p className="error-message">
                         You must agree with the privacy terms.
                     </p>
                 )}
